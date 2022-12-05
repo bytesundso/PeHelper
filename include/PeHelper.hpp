@@ -2,23 +2,6 @@
 
 #include <Windows.h>
 
-class PeHelper
-{
-public:
-    static BOOL isX64(PeImage image);
-    static BOOL isX86(PeImage image);
-    static BOOL isValid(PeImage image);
-
-    static IMAGE_SECTION_HEADER* getSections(PeImage image);
-
-    static IMAGE_SECTION_HEADER* findSection(PeImage image, UINT_PTR rva);
-
-    static UINT_PTR rvaToVA(PeImage image, UINT_PTR rva);
-    static UINT_PTR rvaToFA(PeImage image, UINT_PTR va);
-
-    static IMAGE_DATA_DIRECTORY* getDataDirectory(PeImage image);
-};
-
 class PeImage
 {
 public:
@@ -38,4 +21,21 @@ public:
     const IMAGE_OPTIONAL_HEADER* optionalHeader() const;
     const IMAGE_OPTIONAL_HEADER32* optionalHeader32() const;
     const IMAGE_OPTIONAL_HEADER64* optionalHeader64() const;
+};
+
+class PeHelper
+{
+public:
+    static BOOL isX64(PeImage image);
+    static BOOL isX86(PeImage image);
+    static BOOL isValid(PeImage image);
+
+    static IMAGE_SECTION_HEADER* getSections(PeImage image);
+
+    static IMAGE_SECTION_HEADER* findSection(PeImage image, UINT_PTR rva);
+
+    static UINT_PTR rvaToVA(PeImage image, UINT_PTR rva);
+    static UINT_PTR rvaToFA(PeImage image, UINT_PTR va);
+
+    static IMAGE_DATA_DIRECTORY* getDataDirectory(PeImage image);
 };

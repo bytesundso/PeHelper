@@ -1,5 +1,47 @@
 #include "PeHelper.hpp"
 
+PeImage::PeImage(VOID* base, BOOL mapped) : base((UINT_PTR)base), mapped(mapped) { }
+
+const IMAGE_DOS_HEADER* PeImage::dosHeader() const
+{
+    return (IMAGE_DOS_HEADER*)base;
+}
+
+const IMAGE_NT_HEADERS* PeImage::ntHeaders() const
+{
+    return (IMAGE_NT_HEADERS*)(base + dosHeader()->e_lfanew);
+}
+
+const IMAGE_NT_HEADERS32* PeImage::ntHeaders32() const
+{
+    return (IMAGE_NT_HEADERS32*)(base + dosHeader()->e_lfanew);
+}
+
+const IMAGE_NT_HEADERS64* PeImage::ntHeaders64() const
+{
+    return (IMAGE_NT_HEADERS64*)(base + dosHeader()->e_lfanew);
+}
+
+const IMAGE_FILE_HEADER* PeImage::fileHeader() const
+{
+    return (IMAGE_FILE_HEADER*)(base + dosHeader()->e_lfanew);
+}
+
+const IMAGE_OPTIONAL_HEADER* PeImage::optionalHeader() const
+{
+    return &ntHeaders()->OptionalHeader;
+}
+
+const IMAGE_OPTIONAL_HEADER32* PeImage::optionalHeader32() const
+{
+    return &ntHeaders32()->OptionalHeader;
+}
+
+const IMAGE_OPTIONAL_HEADER64* PeImage::optionalHeader64() const
+{
+    return &ntHeaders64()->OptionalHeader;
+}
+
 BOOL PeHelper::isX64(PeImage image)
 {
     if(image.fileHeader()->Machine == IMAGE_FILE_MACHINE_AMD64)
@@ -60,46 +102,4 @@ IMAGE_DATA_DIRECTORY* PeHelper::getDataDirectory(PeImage image)
         return (IMAGE_DATA_DIRECTORY*)rvaToVA(image, image.mapped ? image.optionalHeader64()->DataDirectory->VirtualAddress : rvaToFA(image, image.optionalHeader64()->DataDirectory->VirtualAddress));
 
     return nullptr;
-}
-
-PeImage::PeImage(VOID* base, BOOL mapped) : base((UINT_PTR)base), mapped(mapped) { }
-
-const IMAGE_DOS_HEADER* PeImage::dosHeader() const
-{
-    return (IMAGE_DOS_HEADER*)base;
-}
-
-const IMAGE_NT_HEADERS* PeImage::ntHeaders() const
-{
-    return (IMAGE_NT_HEADERS*)(base + dosHeader()->e_lfanew);
-}
-
-const IMAGE_NT_HEADERS32* PeImage::ntHeaders32() const
-{
-    return (IMAGE_NT_HEADERS32*)(base + dosHeader()->e_lfanew);
-}
-
-const IMAGE_NT_HEADERS64* PeImage::ntHeaders64() const
-{
-    return (IMAGE_NT_HEADERS64*)(base + dosHeader()->e_lfanew);
-}
-
-const IMAGE_FILE_HEADER* PeImage::fileHeader() const
-{
-    return (IMAGE_FILE_HEADER*)(base + dosHeader()->e_lfanew);
-}
-
-const IMAGE_OPTIONAL_HEADER* PeImage::optionalHeader() const
-{
-    return &ntHeaders()->OptionalHeader;
-}
-
-const IMAGE_OPTIONAL_HEADER32* PeImage::optionalHeader32() const
-{
-    return &ntHeaders32()->OptionalHeader;
-}
-
-const IMAGE_OPTIONAL_HEADER64* PeImage::optionalHeader64() const
-{
-    return &ntHeaders64()->OptionalHeader;
 }
