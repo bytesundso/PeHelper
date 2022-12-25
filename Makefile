@@ -25,20 +25,20 @@ LINK=lib /NODEFAULTLIB /SUBSYSTEM:WINDOWS
 all: $(DESTDIR) $(DESTDIR)\$(BINNAME)
 
 $(DESTDIR)\$(BINNAME): $(SRCDIR)\*.$(VSCMD_ARG_TGT_ARCH).asm $(SRCDIR)\*.c $(SRCDIR)\*.cpp
-	@$(MAKE) $(patsubst $(DESTDIR)\*%, , $(patsubst $(SRCDIR)\\%, $(DESTDIR)\\%, $(patsubst %.cpp, %.obj, $(patsubst %.c, %.obj, $(patsubst %.asm, %.obj, $(?))))))
-	$(LINK) $(patsubst %, -libpath:%, $(LIBDIR)) -out:$(DESTDIR)\$(BINNAME) $(patsubst $(DESTDIR)\*%, , $(patsubst $(SRCDIR)\\%, $(DESTDIR)\\%, $(patsubst %.cpp, %.obj, $(patsubst %.c, %.obj, $(patsubst %.asm, %.obj, $(?))))))
+	@$(MAKE) $(patsubst $(DESTDIR)\*%, , $(patsubst $(SRCDIR)\\%, $(DESTDIR)\\%, $(patsubst %.cpp, %.obj, $(patsubst %.c, %.obj, $(patsubst %.asm, %.obj, $(**))))))
+	@$(LINK) $(patsubst %, -libpath:%, $(LIBDIR)) -out:$(DESTDIR)\$(BINNAME) $(patsubst $(DESTDIR)\*%, , $(patsubst $(SRCDIR)\\%, $(DESTDIR)\\%, $(patsubst %.cpp, %.obj, $(patsubst %.c, %.obj, $(patsubst %.asm, %.obj, $(?))))))
 
 $(SRCDIR)\*.$(VSCMD_ARG_TGT_ARCH).asm:
 {$(SRCDIR)}.asm{$(DESTDIR)}.obj:
-	$(AS) $(AFLAGS) -Fo $(@) -c $(<)
+	@$(AS) $(AFLAGS) -Fo $(@) -c $(<)
 
 $(SRCDIR)\*.c:
 {$(SRCDIR)}.c{$(DESTDIR)}.obj:
-	$(CC) $(CFLAGS) -Fo:$(@) -I $(INCDIR) $(patsubst %, -I %, $(ADDINCDIRS)) -c $(<)
+	@$(CC) $(CFLAGS) -Fo:$(@) -I $(INCDIR) $(patsubst %, -I %, $(ADDINCDIRS)) -c $(<)
 
 $(SRCDIR)\*.cpp:
 {$(SRCDIR)}.cpp{$(DESTDIR)}.obj:
-	$(CPP) $(CPPFLAGS) -Fo:$(@) -I $(INCDIR) $(patsubst %, -I %, $(ADDINCDIRS)) -c $(<)
+	@$(CPP) $(CPPFLAGS) -Fo:$(@) -I $(INCDIR) $(patsubst %, -I %, $(ADDINCDIRS)) -c $(<)
 
 $(DESTDIR):
 	@mkdir $(DESTDIR)

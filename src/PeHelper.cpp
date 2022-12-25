@@ -1,82 +1,74 @@
 #include "PeHelper.hpp"
 
-PeImage::PeImage(VOID* base, BOOL mapped) : base((UINT_PTR)base), mapped(mapped) { }
+PeImage::PeImage(VOID* base, BOOL mapped) : base((UINT_PTR)base), mapped(mapped) 
+{ 
 
-const IMAGE_DOS_HEADER* PeImage::dosHeader() const
+}
+
+PIMAGE_DOS_HEADER PeImage::dosHeader() CONST
 {
     return (IMAGE_DOS_HEADER*)base;
 }
 
-const IMAGE_NT_HEADERS* PeImage::ntHeaders() const
+PIMAGE_NT_HEADERS PeImage::ntHeaders() CONST
 {
-    return (IMAGE_NT_HEADERS*)(base + dosHeader()->e_lfanew);
+    return (PIMAGE_NT_HEADERS)(base + dosHeader()->e_lfanew);
 }
 
-const IMAGE_NT_HEADERS32* PeImage::ntHeaders32() const
+PIMAGE_NT_HEADERS32 PeImage::ntHeaders32() CONST
 {
-    return (IMAGE_NT_HEADERS32*)(base + dosHeader()->e_lfanew);
+    return (PIMAGE_NT_HEADERS32)ntHeaders();
 }
 
-const IMAGE_NT_HEADERS64* PeImage::ntHeaders64() const
+PIMAGE_NT_HEADERS64 PeImage::ntHeaders64() CONST
 {
-    return (IMAGE_NT_HEADERS64*)(base + dosHeader()->e_lfanew);
-}
-
-const IMAGE_FILE_HEADER* PeImage::fileHeader() const
-{
-    return (IMAGE_FILE_HEADER*)(base + dosHeader()->e_lfanew);
-}
-
-const IMAGE_OPTIONAL_HEADER* PeImage::optionalHeader() const
-{
-    return &ntHeaders()->OptionalHeader;
-}
-
-const IMAGE_OPTIONAL_HEADER32* PeImage::optionalHeader32() const
-{
-    return &ntHeaders32()->OptionalHeader;
-}
-
-const IMAGE_OPTIONAL_HEADER64* PeImage::optionalHeader64() const
-{
-    return &ntHeaders64()->OptionalHeader;
-}
-
-BOOL PeHelper::isX64(PeImage image)
-{
-    if(image.fileHeader()->Machine == IMAGE_FILE_MACHINE_AMD64)
-        return TRUE;
-
-    return FALSE;
-}
-
-BOOL PeHelper::isX86(PeImage image)
-{
-    if(image.fileHeader()->Machine == IMAGE_FILE_MACHINE_I386)
-        return TRUE;
-
-    return FALSE;
+    return (PIMAGE_NT_HEADERS64)ntHeaders();
 }
 
 BOOL PeHelper::isValid(PeImage image)
 {
+    if (image.dosHeader()->e_magic != IMAGE_DOS_SIGNATURE)
+        return FALSE;
+
+    if (image.ntHeaders()->Signature != IMAGE_NT_SIGNATURE)
+        return FALSE;
+
+    if (image.ntHeaders()->OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR32_MAGIC
+    && image.ntHeaders()->OptionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR64_MAGIC)
+        return FALSE;
+
     return TRUE;
 }
 
-IMAGE_SECTION_HEADER* PeHelper::getSections(PeImage image)
+PIMAGE_SECTION_HEADER PeHelper::getSection(PeImage image, UINT index)
 {
-    return (IMAGE_SECTION_HEADER*)(image.base + image.dosHeader()->e_lfanew + (isX64(image) ? sizeof(IMAGE_NT_HEADERS64) : 0) + (isX86(image) ? sizeof(IMAGE_NT_HEADERS32) : 0));
+    return &(IMAGE_FIRST_SECTION(image.ntHeaders()))[index];
 }
 
-IMAGE_SECTION_HEADER* PeHelper::findSection(PeImage image, UINT_PTR rva)
+PIMAGE_DATA_DIRECTORY PeHelper::getDataDirectory(PeImage image, UINT index)
 {
-    IMAGE_SECTION_HEADER* sections = getSections(image);
+    switch (image.ntHeaders()->OptionalHeader.Magic)
+    {
+    case IMAGE_NT_OPTIONAL_HDR32_MAGIC:
+        return &image.ntHeaders32()->OptionalHeader.DataDirectory[index];
+    case IMAGE_NT_OPTIONAL_HDR64_MAGIC:
+        return &image.ntHeaders64()->OptionalHeader.DataDirectory[index];
+    default:
+        return NULL;
+    }
+}
 
-    for(int i = 0; i < image.fileHeader()->NumberOfSections; i++)
-        if(sections[i].VirtualAddress <= rva && sections[i].VirtualAddress + sections[i].SizeOfRawData >= rva)
-            return &sections[i];
+PIMAGE_SECTION_HEADER PeHelper::findSection(PeImage image, UINT_PTR rva)
+{
+    for(UINT i = 0; i < image.ntHeaders32()->FileHeader.NumberOfSections; i++)
+    {
+        PIMAGE_SECTION_HEADER current = getSection(image, i);
+        
+        if(rva >= current->VirtualAddress && rva < current->VirtualAddress + current->SizeOfRawData)
+            return current;
+    }
 
-    return nullptr;
+    return NULL;
 }
 
 UINT_PTR PeHelper::rvaToVA(PeImage image, UINT_PTR rva)
@@ -92,14 +84,4 @@ UINT_PTR PeHelper::rvaToFA(PeImage image, UINT_PTR rva)
         return 0;
 
     return rva - section->VirtualAddress + section->PointerToRawData;
-}
-
-IMAGE_DATA_DIRECTORY* PeHelper::getDataDirectory(PeImage image)
-{
-    if(isX86(image))
-        return (IMAGE_DATA_DIRECTORY*)rvaToVA(image, image.mapped ? image.optionalHeader32()->DataDirectory->VirtualAddress : rvaToFA(image, image.optionalHeader32()->DataDirectory->VirtualAddress));
-    else if(isX64(image))
-        return (IMAGE_DATA_DIRECTORY*)rvaToVA(image, image.mapped ? image.optionalHeader64()->DataDirectory->VirtualAddress : rvaToFA(image, image.optionalHeader64()->DataDirectory->VirtualAddress));
-
-    return nullptr;
 }
