@@ -1,5 +1,5 @@
 #binary name
-BINNAME=SneakCalls.lib
+BINNAME=PeHelper.lib
 
 #internal dirs
 SRCDIR=src
