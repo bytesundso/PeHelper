@@ -85,3 +85,15 @@ UINT_PTR PeHelper::rvaToFA(PeImage image, UINT_PTR rva)
 
     return rva - section->VirtualAddress + section->PointerToRawData;
 }
+
+PIMAGE_EXPORT_DIRECTORY PeHelper::getExportDirectory(PeImage image)
+{
+    return (PIMAGE_EXPORT_DIRECTORY)rvaToVA(image, image.mapped ? 
+        getDataDirectory(image, IMAGE_DIRECTORY_ENTRY_EXPORT)->VirtualAddress
+        : rvaToFA(image, getDataDirectory(image, IMAGE_DIRECTORY_ENTRY_EXPORT)->VirtualAddress));
+}
+
+PIMAGE_IMPORT_DESCRIPTOR PeHelper::getImportDesctriptor(PeImage image)
+{
+    return (PIMAGE_IMPORT_DESCRIPTOR)rvaToVA(image, getDataDirectory(image, IMAGE_DIRECTORY_ENTRY_IAT)->VirtualAddress);
+}

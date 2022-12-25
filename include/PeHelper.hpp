@@ -22,11 +22,14 @@ class PeHelper
 public:
     static BOOL isValid(PeImage image);
 
-    static PIMAGE_SECTION_HEADER getSection(PeImage image, UINT index = 0);
-    static PIMAGE_DATA_DIRECTORY getDataDirectory(PeImage image, UINT index = 0);
+    static PIMAGE_SECTION_HEADER getSection(PeImage image, UINT index);
+    static PIMAGE_DATA_DIRECTORY getDataDirectory(PeImage image, UINT index);
 
     static PIMAGE_SECTION_HEADER findSection(PeImage image, UINT_PTR rva);
 
     static UINT_PTR rvaToVA(PeImage image, UINT_PTR rva);
-    static UINT_PTR rvaToFA(PeImage image, UINT_PTR va);
+    static UINT_PTR rvaToFA(PeImage image, UINT_PTR rva);
+
+    static PIMAGE_EXPORT_DIRECTORY getExportDirectory(PeImage image);
+    static PIMAGE_IMPORT_DESCRIPTOR getImportDesctriptor(PeImage image);
 };
