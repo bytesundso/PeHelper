@@ -4,7 +4,7 @@ BINNAME=PeHelper.lib
 #internal dirs
 SRCDIR=src
 INCDIR=include
-DESTDIR=build
+DESTDIR=build\\$(VSCMD_ARG_TGT_ARCH)
 
 #flags
 AFLAGS=
