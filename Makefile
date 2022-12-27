@@ -26,11 +26,11 @@ all: $(DESTDIR) $(DESTDIR)\$(BINNAME)
 
 $(DESTDIR)\$(BINNAME): $(SRCDIR)\*.$(VSCMD_ARG_TGT_ARCH).asm $(SRCDIR)\*.c $(SRCDIR)\*.cpp
 	@$(MAKE) $(patsubst $(DESTDIR)\*%, , $(patsubst $(SRCDIR)\\%, $(DESTDIR)\\%, $(patsubst %.cpp, %.obj, $(patsubst %.c, %.obj, $(patsubst %.asm, %.obj, $(**))))))
-	@$(LINK) $(patsubst %, -libpath:%, $(LIBDIR)) -out:$(DESTDIR)\$(BINNAME) $(patsubst $(DESTDIR)\*%, , $(patsubst $(SRCDIR)\\%, $(DESTDIR)\\%, $(patsubst %.cpp, %.obj, $(patsubst %.c, %.obj, $(patsubst %.asm, %.obj, $(?))))))
+	@$(LINK) $(patsubst %, -libpath:%, $(LIBDIR)) -out:$(DESTDIR)\$(BINNAME) $(patsubst $(DESTDIR)\*%, , $(patsubst $(SRCDIR)\\%, $(DESTDIR)\\%, $(patsubst %.cpp, %.obj, $(patsubst %.c, %.obj, $(patsubst %.$(VSCMD_ARG_TGT_ARCH).asm, %.obj, $(?))))))
 
 $(SRCDIR)\*.$(VSCMD_ARG_TGT_ARCH).asm:
 {$(SRCDIR)}.asm{$(DESTDIR)}.obj:
-	@$(AS) $(AFLAGS) -Fo $(@) -c $(<)
+	@$(AS) $(AFLAGS) -Fo $(patsubst .$(VSCMD_ARG_TGT_ARCH), , $(@)) -c $(<)
 
 $(SRCDIR)\*.c:
 {$(SRCDIR)}.c{$(DESTDIR)}.obj:
