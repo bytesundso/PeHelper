@@ -1,47 +1,43 @@
-#binary name
-BINNAME=PeHelper.lib
+NAME_BIN=PeHelper.lib
+NAME_SUBS=
 
-#internal dirs
-SRCDIR=src
-INCDIR=include
-DESTDIR=build\\$(VSCMD_ARG_TGT_ARCH)
+DIR_INC=include
+DIR_SRC=src
+DIR_BUILD=build
+DIR_SUBS=subs
 
-#flags
-AFLAGS=
-CFLAGS=
-CPPFLAGS=/std:c++20 /Gd /GR- /O1 /sdl- /GS-
+FLAGS_ASM=
+FLAGS_C=
+FLAGS_CPP=/std:c++20 /Gd /GR- /O1 /sdl- /GS-
 
-#external dirs
-ADDINCDIRS=
-LIBDIRS=
-
-#link
 LINK=lib /NODEFAULTLIB /SUBSYSTEM:WINDOWS
 
 !IF !DEFINED(VSCMD_ARG_TGT_ARCH) || !DEFINED(AS) || !DEFINED(CC) || !DEFINED(CPP)
 !ERROR "Not all macros are defined! (Did you use VS Development Powershell/Command Prompt?)"
 !ENDIF
 
-all: $(DESTDIR) $(DESTDIR)\$(BINNAME)
+all: $(DIR_INC) $(DIR_SRC) $(DIR_BUILD) $(DIR_BUILD)\\$(VSCMD_ARG_TGT_ARCH) $(DIR_SUBS) $(DIR_BUILD)\\$(VSCMD_ARG_TGT_ARCH)\\$(NAME_BIN)
 
-$(DESTDIR)\$(BINNAME): $(SRCDIR)\*.$(VSCMD_ARG_TGT_ARCH).asm $(SRCDIR)\*.c $(SRCDIR)\*.cpp
-	@$(MAKE) $(patsubst $(DESTDIR)\*%, , $(patsubst $(SRCDIR)\\%, $(DESTDIR)\\%, $(patsubst %.cpp, %.obj, $(patsubst %.c, %.obj, $(patsubst %.asm, %.obj, $(**))))))
-	@$(LINK) $(patsubst %, -libpath:%, $(LIBDIR)) -out:$(DESTDIR)\$(BINNAME) $(patsubst $(DESTDIR)\*%, , $(patsubst $(SRCDIR)\\%, $(DESTDIR)\\%, $(patsubst %.cpp, %.obj, $(patsubst %.c, %.obj, $(patsubst %.$(VSCMD_ARG_TGT_ARCH).asm, %.obj, $(?))))))
+$(DIR_BUILD)\\$(VSCMD_ARG_TGT_ARCH)\\$(NAME_BIN): $(DIR_SRC)\\*.asm $(DIR_SRC)\\*.c $(DIR_SRC)\\*.cpp
+	@$(subst %, $(MAKE) -C $(DIR_SUBS)\\% &, $(NAME_SUBS))
+	@$(MAKE) $(patsubst $(DIR_SRC)\\%, $(DIR_BUILD)\\$(VSCMD_ARG_TGT_ARCH)\\%, $(subst $(DIR_SRC)\\*.obj,, $(patsubst %.cpp, %.obj, $(patsubst %.c, %.obj, $(patsubst %.asm, %.obj, $(**))))))
+	@$(LINK) $(subst %, -libpath:$(DIR_SUBS)\\%\\$(DIR_BUILD)\\$(VSCMD_ARG_TGT_ARCH), $(NAME_SUBS)) -out:$(DIR_BUILD)\\$(VSCMD_ARG_TGT_ARCH)\\$(NAME_BIN) $(subst $(DIR_BUILD)\*%, , $(patsubst $(DIR_SRC)\\%, $(DIR_BUILD)\\$(VSCMD_ARG_TGT_ARCH)\\%, $(subst $(DIR_SRC)\\*.obj,, $(patsubst %.cpp, %.obj, $(patsubst %.c, %.obj, $(patsubst %.asm, %.obj, $(**)))))))
 
-$(SRCDIR)\*.$(VSCMD_ARG_TGT_ARCH).asm:
-{$(SRCDIR)}.asm{$(DESTDIR)}.obj:
-	@$(AS) $(AFLAGS) -Fo $(patsubst .$(VSCMD_ARG_TGT_ARCH), , $(@)) -c $(<)
+$(DIR_SRC)\\*.asm:
+{$(DIR_SRC)}.asm{$(DIR_BUILD)\\$(VSCMD_ARG_TGT_ARCH)}.obj:
+	@$(AS) $(FLAGS_ASM) -Fo $(@) -c $(<)
 
-$(SRCDIR)\*.c:
-{$(SRCDIR)}.c{$(DESTDIR)}.obj:
-	@$(CC) $(CFLAGS) -Fo:$(@) -I $(INCDIR) $(patsubst %, -I %, $(ADDINCDIRS)) -c $(<)
+$(DIR_SRC)\\*.c:
+{$(DIR_SRC)}.c{$(DIR_BUILD)\\$(VSCMD_ARG_TGT_ARCH)}.obj:
+	@$(CC) $(FLAGS_C) -Fo:$(@) -I $(DIR_INC) $(patsubst %, -I $(DIR_SUBS)\%\$(DIR_INC), $(NAME_SUBS)) -c $(<)
 
-$(SRCDIR)\*.cpp:
-{$(SRCDIR)}.cpp{$(DESTDIR)}.obj:
-	@$(CPP) $(CPPFLAGS) -Fo:$(@) -I $(INCDIR) $(patsubst %, -I %, $(ADDINCDIRS)) -c $(<)
+$(DIR_SRC)\\*.cpp:
+{$(DIR_SRC)}.cpp{$(DIR_BUILD)\\$(VSCMD_ARG_TGT_ARCH)}.obj:
+	@$(CPP) $(FLAGS_CPP) -Fo:$(@) -I $(DIR_INC) $(patsubst %, -I $(DIR_SUBS)\%\$(DIR_INC), $(NAME_SUBS)) -c $(<)
 
-$(DESTDIR):
-	@mkdir $(DESTDIR)
+
+$(DIR_INC) $(DIR_SRC) $(DIR_BUILD) $(DIR_BUILD)\\$(VSCMD_ARG_TGT_ARCH) $(DIR_SUBS):
+	@mkdir $(@)
 
 clean:
-	@rmdir /s /q $(DESTDIR)
+	@rmdir /s /q $(DIR_BUILD)
