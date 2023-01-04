@@ -29,7 +29,7 @@ BOOL PeHelper::isValid(PeImage image)
 {
     if (image.dosHeader()->e_magic != IMAGE_DOS_SIGNATURE)
         return FALSE;
-
+    
     if (image.ntHeaders()->Signature != IMAGE_NT_SIGNATURE)
         return FALSE;
 
