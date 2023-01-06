@@ -19,7 +19,6 @@ LINK=lib /NODEFAULTLIB /SUBSYSTEM:WINDOWS
 all: $(DIR_INC) $(DIR_SRC) $(DIR_BUILD) $(DIR_BUILD)\\$(VSCMD_ARG_TGT_ARCH) $(DIR_SUBS) $(DIR_BUILD)\\$(VSCMD_ARG_TGT_ARCH)\\$(NAME_BIN)
 
 $(DIR_BUILD)\\$(VSCMD_ARG_TGT_ARCH)\\$(NAME_BIN): $(DIR_SRC)\\*.asm $(DIR_SRC)\\*.c $(DIR_SRC)\\*.cpp
-	@$(patsubst %, $(MAKE) -C $(DIR_SUBS)\\% &, $(NAME_SUBS))
 	@$(MAKE) $(patsubst $(DIR_SRC)\\%, $(DIR_BUILD)\\$(VSCMD_ARG_TGT_ARCH)\\%, $(subst $(DIR_SRC)\\*.obj,, $(patsubst %.cpp, %.obj, $(patsubst %.c, %.obj, $(patsubst %.asm, %.obj, $(**))))))
 	@$(LINK) $(patsubst %, -libpath:$(DIR_SUBS)\\%\\$(DIR_BUILD)\\$(VSCMD_ARG_TGT_ARCH), $(NAME_SUBS)) -out:$(DIR_BUILD)\\$(VSCMD_ARG_TGT_ARCH)\\$(NAME_BIN) $(patsubst $(DIR_SRC)\\%, $(DIR_BUILD)\\$(VSCMD_ARG_TGT_ARCH)\\%, $(subst $(DIR_SRC)\\*.obj,, $(patsubst %.cpp, %.obj, $(patsubst %.c, %.obj, $(patsubst %.asm, %.obj, $(**))))))
 
